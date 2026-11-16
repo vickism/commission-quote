@@ -1,0 +1,12 @@
+{
+  "GHSA-gcqx-w48m-w2h4": {
+    "active": true,
+    "notes": "No patched deepmerge release is available. Used only by Jest configuration and Storybook's TypeScript checker with repository-controlled configuration, not application request data. Review upstream fixes before expiry.",
+    "expiry": "2026-12-16"
+  },
+  "GHSA-848j-6mx2-7j84": {
+    "active": true,
+    "notes": "No patched elliptic release is available. Transitive dependency of Storybook's node-polyfill-webpack-plugin; the application does not use this dependency for cryptographic operations. Review Storybook updates or removal of the polyfill before expiry.",
+    "expiry": "2026-12-16"
+  }
+}

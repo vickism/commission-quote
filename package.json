@@ -1,10 +1,12 @@
 {
-  "name": "mantine-next-template",
+  "name": "commission-quote",
+  "description": "Commission quote application built with Next.js, TypeScript and Mantine.",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "audit": "better-npm-audit audit",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -24,9 +26,17 @@
     "@mantine/hooks": "9.8.0",
     "@next/bundle-analyzer": "^16.0.0",
     "@tabler/icons-react": "^3.35.0",
+    "better-npm-audit": "^4.2.1",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"
+  },
+  "overrides": {
+    "glob@>=9 <14.0.2": "^14.0.6",
+    "minimatch@>=7 <11.0.1": "^11.0.8",
+    "@storybook/builder-webpack5": {
+      "webpack-dev-middleware": "^7.4.6"
+    }
   },
   "devDependencies": {
     "@babel/core": "^8.0.0",
@@ -52,8 +62,11 @@
     "storybook": "^10.0.0",
     "stylelint": "^18.0.0",
     "stylelint-config-standard": "^41.0.0",
-    "ts-jest": "^29.4.4",
     "typescript": "7.0.2"
   },
-  "packageManager": "yarn@4.18.1"
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.2": true,
+    "core-js-pure": false
+  }
 }

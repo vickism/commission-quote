@@ -1,11 +1,18 @@
-# Mantine Next.js template
+# Commission Quote
 
-This is a template for [Next.js](https://nextjs.org/) app router + [Mantine](https://mantine.dev/).
-If you want to use pages router instead, see [next-pages-template](https://github.com/mantinedev/next-pages-template).
+Commission quote application built with [Next.js](https://nextjs.org/) App Router,
+[TypeScript](https://www.typescriptlang.org/) and [Mantine](https://mantine.dev/).
+
+The project currently contains the starter UI and development tooling. The independent
+mock commission vendor integration is planned.
+
+## Getting started
+
+Install dependencies with `npm ci`, then run `npm run dev` to start the development server.
 
 ## Features
 
-This template comes with the following features:
+The project includes the following development tools:
 
 - [PostCSS](https://postcss.org/) with [mantine-postcss-preset](https://mantine.dev/styles/postcss-preset)
 - [TypeScript](https://www.typescriptlang.org/)
@@ -28,10 +35,15 @@ This template comes with the following features:
 - `format:test` – checks files with oxfmt
 - `jest` – runs jest tests
 - `jest:watch` – starts jest watch
-- `test` – runs `jest`, `format:test`, `lint` and `typecheck` scripts
+- `test` – generates Next.js types, then runs formatting, lint, TypeScript and Jest checks
 
 ### Other scripts
 
 - `storybook` – starts storybook dev server
 - `storybook:build` – build production storybook bundle to `storybook-static`
 - `format:write` – formats all files with oxfmt
+
+## AI usage
+
+AI assistance has been used to update project metadata and documentation. Changes are
+reviewed and verified with the available project checks.
