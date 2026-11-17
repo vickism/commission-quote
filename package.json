@@ -33,7 +33,9 @@
     "react-dom": "19.3.1"
   },
   "overrides": {
+    "@faker-js/faker": "10.6.0",
     "glob@>=9 <14.0.2": "^14.0.6",
+    "joi": "18.3.2",
     "minimatch@>=7 <11.0.1": "^11.0.8",
     "@storybook/builder-webpack5": {
       "webpack-dev-middleware": "^7.4.6"
