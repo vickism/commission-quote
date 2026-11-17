@@ -40,6 +40,38 @@ For a manual check, generate a quote for each risk band, submit invalid input, a
 check that editing clears the previous result. Stop/restart your local vendor to
 verify failure and recovery.
 
+## AI browser test
+
+The [quote test](tests/ui/commission-quote.test.md) uses
+[@vickism/ai-ui-tests](https://www.npmjs.com/package/@vickism/ai-ui-tests) with OpenAI,
+separately from `npm test`. Install Chromium once with
+`npx --no-install playwright install chromium`.
+
+Start the app with:
+
+```powershell
+npm run dev
+```
+
+Once ready, run the test in another terminal using a model that supports images and tool calls:
+
+```powershell
+$env:OPENAI_API_KEY = '<your-api-key>'
+$env:AI_UI_TEST_MODEL = '<your-model-id>'
+npm run test:ui
+```
+
+The runner does not load `.env` files. The default model is configured in
+`ai-ui-tests.config.ts`; `AI_UI_TEST_MODEL` overrides it.
+
+For detailed test execution logs:
+
+```powershell
+npm run test:ui:verbose
+```
+
+Runs send app context and screenshots to model providers and incur API usage; use synthetic data only.
+
 ## Behavior and limitations
 
 - The mock intentionally returns occasional 503 errors randomly. Its calculation rules are
