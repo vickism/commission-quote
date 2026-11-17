@@ -42,9 +42,9 @@ verify failure and recovery.
 
 ## AI browser test
 
-The [quote test](tests/ui/commission-quote.test.md) uses
-[@vickism/ai-ui-tests](https://www.npmjs.com/package/@vickism/ai-ui-tests) with OpenAI,
-separately from `npm test`. Install Chromium once with
+The application uses [@vickism/ai-ui-tests](https://www.npmjs.com/package/@vickism/ai-ui-tests) use test the application in a real browser with AI assistance.
+
+Install Chromium once with
 `npx --no-install playwright install chromium`.
 
 Start the app with:
@@ -58,13 +58,15 @@ Once ready, run the test in another terminal using a model that supports images 
 ```powershell
 $env:OPENAI_API_KEY = '<your-api-key>'
 $env:AI_UI_TEST_MODEL = '<your-model-id>'
+```
+or configure the model and key in `ai-ui-tests.config.ts`.
+
+Run the test:
+
+```powershell
 npm run test:ui
 ```
-
-The runner does not load `.env` files. The default model is configured in
-`ai-ui-tests.config.ts`; `AI_UI_TEST_MODEL` overrides it.
-
-For detailed test execution logs:
+or to see the AI's thinking run
 
 ```powershell
 npm run test:ui:verbose
