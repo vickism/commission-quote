@@ -9,6 +9,7 @@ import {
   generateVendorQuote,
   VendorQuoteError,
 } from '../../../lib/commission-quotes/vendor.server';
+import { logger } from '../../../lib/logger.server';
 
 export const runtime = 'nodejs';
 
@@ -86,19 +87,24 @@ export async function POST(request: Request): Promise<Response> {
         parsed.fieldErrors
       );
     }
-    return Response.json(await generateVendorQuote(parsed.data), { headers });
+    const response = Response.json(await generateVendorQuote(parsed.data), { headers });
+    logger.info({ requestId, elapsedMs: Date.now() - started }, 'commission_quote_generated');
+    return response;
   } catch (error) {
     if (error instanceof RequestBodyError) {
       return failure(error.status, 'INVALID_REQUEST', error.message);
     }
     const category = error instanceof VendorQuoteError ? error.kind : 'unexpected';
-    // oxlint-disable-next-line no-console -- Server operational metadata only; no payloads or credentials.
-    console.warn('commission_quote_failed', {
-      requestId,
-      category,
-      upstreamStatus: error instanceof VendorQuoteError ? error.upstreamStatus : undefined,
-      elapsedMs: Date.now() - started,
-    });
+    const level = category === 'configuration' || category === 'unexpected' ? 'error' : 'warn';
+    logger[level](
+      {
+        requestId,
+        category,
+        upstreamStatus: error instanceof VendorQuoteError ? error.upstreamStatus : undefined,
+        elapsedMs: Date.now() - started,
+      },
+      'commission_quote_failed'
+    );
     switch (category) {
       case 'timeout':
         return failure(
