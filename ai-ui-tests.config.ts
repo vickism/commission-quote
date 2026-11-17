@@ -3,7 +3,7 @@ export default {
   ai: {
     provider: 'openai',
     model: process.env.AI_UI_TEST_MODEL || 'gpt-6-luna',
-    apiKey: process.env.OPENAI_API_KEY || 'sk-...', 
+    apiKey: process.env.OPENAI_API_KEY || 'sk-...',
     maxIterations: 40,
   },
   browser: {
