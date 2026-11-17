@@ -9,6 +9,7 @@ mock commission vendor integration is planned.
 ## Getting started
 
 Install dependencies with `npm ci`, then run `npm run dev` to start the development server.
+Use the Node.js version specified in `.nvmrc`.
 
 ## Features
 
@@ -43,7 +44,23 @@ The project includes the following development tools:
 - `storybook:build` – build production storybook bundle to `storybook-static`
 - `format:write` – formats all files with oxfmt
 
+## CI and contributing
+
+GitHub Actions runs `npm ci`, `npm run audit`, `npm test` and `npm run build` on pull requests,
+pushes to `master`, and manual workflow runs. The workflow is named `CI` and its job ID
+is `test_pull_request`. Branch protection is configured separately in GitHub.
+The workflow is defined in [ci.yml](.github/workflows/ci.yml). `npm test` includes
+Next.js type generation, formatting, Oxlint, Stylelint, TypeScript and Jest checks.
+The audit uses the reviewed, expiring exceptions in `.nsprc` and fails on unaccepted findings.
+
+Before opening a pull request, run `npm run audit`, `npm test` and `npm run build` locally and record
+the results in the [pull request template](.github/pull_request_template.md).
+Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or
+[feature request](.github/ISSUE_TEMPLATE/feature_request.yml) form for issues.
+Remove secrets and personal financial data from reports, logs and screenshots.
+
 ## AI usage
 
-AI assistance has been used to update project metadata and documentation. Changes are
+AI assistance has been used to update project metadata, development tooling,
+GitHub configuration, contribution templates and documentation. Changes are
 reviewed and verified with the available project checks.

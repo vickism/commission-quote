@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose an improvement.
+title: '[Feature]: '
+body:
+  - type: markdown
+    attributes:
+      value: Do not include secrets or personal financial data. Use synthetic examples.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the need and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Describe observable outcomes that would make this improvement complete.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
