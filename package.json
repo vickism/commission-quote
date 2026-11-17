@@ -19,7 +19,8 @@
     "format:write": "oxfmt -c oxfmt.config.mjs --write \"**/*.{ts,tsx,css}\"",
     "test": "npx next typegen && npm run format:test && npm run lint && npm run typecheck && npm run jest",
     "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build"
+    "storybook:build": "storybook build",
+    "mock:vendor": "mockoon-cli start --data ./mocks/commission-vendor.json --port 4001"
   },
   "dependencies": {
     "@mantine/core": "9.8.0",
@@ -32,7 +33,9 @@
     "react-dom": "19.3.1"
   },
   "overrides": {
+    "@faker-js/faker": "10.6.0",
     "glob@>=9 <14.0.2": "^14.0.6",
+    "joi": "18.3.2",
     "minimatch@>=7 <11.0.1": "^11.0.8",
     "@storybook/builder-webpack5": {
       "webpack-dev-middleware": "^7.4.6"
@@ -40,6 +43,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.0",
+    "@mockoon/cli": "^9.10.0",
     "@storybook/addon-themes": "^10.0.0",
     "@storybook/nextjs": "^10.0.0",
     "@storybook/react": "^10.0.0",

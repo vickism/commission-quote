@@ -1,0 +1,121 @@
+{
+  "uuid": "cd2a6409-a928-4722-8f9a-3816859a0327",
+  "lastMigration": 33,
+  "name": "Commision vendor",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 4001,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "128902e5-3e1b-4646-8ae7-394ba5facf45",
+      "type": "http",
+      "documentation": "",
+      "method": "post",
+      "endpoint": "commission-quotes",
+      "responses": [
+        {
+          "uuid": "68161878-8d16-4a1c-964f-8b1d2fc73cac",
+          "body": "{\n  \"error\": \"Unauthorized\",\n  \"message\": \"Missing or invalid API key\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "8926aaa1-1b1d-4de5-a097-0b3759b5db82",
+          "body": "{{#if (eq (int 1 10) 1)}}\n  {{status 503}}\n  {\n    \"error\": \"SERVICE_UNAVAILABLE\",\n    \"message\": \"Commission vendor temporarily unavailable\"\n  }\n{{else}}\n\n\n{\n  \"quoteId\": \"{{uuid}}\",\n  \"commissionRate\": {{#switch (bodyRaw 'riskBand')}}\n    {{#case 'LOW'}}0.0065{{/case}}\n    {{#case 'MEDIUM'}}0.00675{{/case}}\n    {{#case 'HIGH'}}0.007{{/case}}\n    {{#default}}0{{/default}}\n  {{/switch}},\n  \"totalCommission\": {{#switch (bodyRaw 'riskBand')}}\n    {{#case 'LOW'}}\n      {{toFixed (multiply (bodyRaw 'loanAmount') 0.0065) 2}}\n    {{/case}}\n    {{#case 'MEDIUM'}}\n      {{toFixed (multiply (bodyRaw 'loanAmount') 0.00675) 2}}\n    {{/case}}\n    {{#case 'HIGH'}}\n      {{toFixed (multiply (bodyRaw 'loanAmount') 0.007) 2}}\n    {{/case}}\n    {{#default}}0{{/default}}\n  {{/switch}}\n}\n{{/if}}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "api-key",
+              "value": "local-dev-key-123",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "128902e5-3e1b-4646-8ae7-394ba5facf45"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}
