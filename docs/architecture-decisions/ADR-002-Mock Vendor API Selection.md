@@ -1,4 +1,4 @@
-# ADR-004: Mock Vendor API Selection
+# ADR-002: Mock Vendor API Selection
 
 - **Status:** Accepted
 - **Owner:** Vick Tahil

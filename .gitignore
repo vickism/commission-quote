@@ -136,3 +136,8 @@ next-env.d.ts
 # Local browser verification artifacts
 /.playwright-cli/
 /output/playwright/
+
+# AI browser test artifacts
+/output/ai-ui-tests/
+/ai-ui-tests-memory/
+/ai-ui-tests-auth.json
