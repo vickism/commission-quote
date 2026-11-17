@@ -11,6 +11,11 @@ mock commission vendor integration is planned.
 Install dependencies with `npm ci`, then run `npm run dev` to start the development server.
 Use the Node.js version specified in `.nvmrc`.
 
+### Setting up a Git worktree
+
+After creating a worktree, run `.\setup-worktree.ps1` (Windows) or
+`bash setup-worktree.sh` (Bash) from its directory to set it up.
+
 ## Features
 
 The project includes the following development tools:
@@ -61,6 +66,6 @@ Remove secrets and personal financial data from reports, logs and screenshots.
 
 ## AI usage
 
-AI assistance has been used to update project metadata, development tooling,
+AI assistance has been used to update project metadata, development tooling, worktree setup,
 GitHub configuration, contribution templates and documentation. Changes are
 reviewed and verified with the available project checks.
