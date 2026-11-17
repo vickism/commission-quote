@@ -1,10 +1,10 @@
 # ADR-004: Mock Vendor API Selection
 
-- **Status:** Draft
+- **Status:** Accepted
 - **Owner:** Vick Tahil
 - **Deciders:** Vick Tahil
 - **Date created:** 17 November 2026
-- **Date decided:** Pending
+- **Date decided:** 17 November 2026
 - **Date updated:** 17 November 2026
 
 ## Context
@@ -159,8 +159,9 @@ Beeceptor is a strong alternative where hosted convenience takes priority over l
 A custom HTTP implementation remains the fallback if the mocking platforms require more configuration or workarounds than implementing the behaviour directly.
 
 ## Selected Option
+**Option 1: Mockoon — provisional selection.**
+Spike verified that Mockoon can implement the agreed contract, enforce API-key validation, calculate responses based on request data and simulate random failures. The mock configuration can be stored in the repository and executed through the CLI.
 
-**Pending validation.**
 
 ## Next Steps
 
