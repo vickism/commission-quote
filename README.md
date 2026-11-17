@@ -1,71 +1,63 @@
 # Commission Quote
 
-Commission quote application built with [Next.js](https://nextjs.org/) App Router,
-[TypeScript](https://www.typescriptlang.org/) and [Mantine](https://mantine.dev/).
+Generate commission quotes from loan details using Next.js, TypeScript and Mantine.
+An independent Mockoon API calculates the commission.
 
-The project currently contains the starter UI and development tooling. The independent
-mock commission vendor integration is planned.
+## Run locally
 
-## Getting started
+Use Node.js 26.13.1.
 
-Install dependencies with `npm ci`, then run `npm run dev` to start the development server.
-Use the Node.js version specified in `.nvmrc`.
+1. Run `npm ci`.
+2. Copy [.env.example](.env.example) to `.env.local` in the project root. Set
+   `COMMISSION_VENDOR_API_KEY` to match the `api-key` response rule in
+   [the mock definition](mocks/commission-vendor.json). Leave the default vendor URL.
+3. Run `npm run dev` to start the app (port 3000) and mock vendor (port 4001),
+   then open http://localhost:3000. Press Ctrl+C to stop both.
 
-### Setting up a Git worktree
+To run them separately, use `npm run dev:app` and `npm run mock:vendor`.
 
-After creating a worktree, run `.\setup-worktree.ps1` (Windows) or
-`bash setup-worktree.sh` (Bash) from its directory to set it up.
+The vendor key is read only on the server and must never use the `NEXT_PUBLIC_` prefix.
 
-## Features
+To run the production build locally, run `npm run build`, then `npm start`.
+Keep the vendor running in its own terminal.
 
-The project includes the following development tools:
+For a new Git worktree, run `.\setup-worktree.ps1` (Windows) or
+`bash setup-worktree.sh` (Bash) from its directory.
 
-- [PostCSS](https://postcss.org/) with [mantine-postcss-preset](https://mantine.dev/styles/postcss-preset)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Storybook](https://storybook.js.org/)
-- [Jest](https://jestjs.io/) setup with [React Testing Library](https://testing-library.com/docs/react-testing-library/intro)
-- Oxlint setup for TypeScript and React sources
+## Verify
 
-## npm scripts
+```sh
+npm test
+npm run build
+npm run audit
+```
 
-### Build and dev scripts
+`npm test` checks formatting, lint, types and automated tests. Tests simulate vendor
+responses and timeouts, so the mock does not need to be running. These checks also run
+in [CI](.github/workflows/ci.yml); reviewed audit exceptions are in [.nsprc](.nsprc).
 
-- `dev` – start dev server
-- `build` – bundle application for production
-- `analyze` – analyzes application bundle with [@next/bundle-analyzer](https://www.npmjs.com/package/@next/bundle-analyzer)
+For a manual check, generate a quote for each risk band, submit invalid input, and
+check that editing clears the previous result. Stop/restart your local vendor to
+verify failure and recovery.
 
-### Testing scripts
+## Behavior and limitations
 
-- `typecheck` – checks TypeScript types
-- `lint` – runs oxlint and stylelint
-- `format:test` – checks files with oxfmt
-- `jest` – runs jest tests
-- `jest:watch` – starts jest watch
-- `test` – generates Next.js types, then runs formatting, lint, TypeScript and Jest checks
+- The mock intentionally returns occasional 503 errors randomly. Its calculation rules are
+  illustrative and currently do not use the loan term.
+- There are no automatic retries; a timed-out request may already have generated a quote.
+- Quotes are not stored.
 
-### Other scripts
+The browser calls a Next.js POST endpoint, which validates input and calls a server-only
+vendor adapter.
 
-- `storybook` – starts storybook dev server
-- `storybook:build` – build production storybook bundle to `storybook-static`
-- `format:write` – formats all files with oxfmt
+## Before production
 
-## CI and contributing
-
-GitHub Actions runs `npm ci`, `npm run audit`, `npm test` and `npm run build` on pull requests,
-pushes to `master`, and manual workflow runs. The workflow is named `CI` and its job ID
-is `test_pull_request`. Branch protection is configured separately in GitHub.
-The workflow is defined in [ci.yml](.github/workflows/ci.yml). `npm test` includes
-Next.js type generation, formatting, Oxlint, Stylelint, TypeScript and Jest checks.
-The audit uses the reviewed, expiring exceptions in `.nsprc` and fails on unaccepted findings.
-
-Before opening a pull request, run `npm run audit`, `npm test` and `npm run build` locally and record
-the results in the [pull request template](.github/pull_request_template.md).
-Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or
-[feature request](.github/ISSUE_TEMPLATE/feature_request.yml) form for issues.
-Remove secrets and personal financial data from reports, logs and screenshots.
+- Add staff authentication and authorization; the application endpoint is currently public.
+- Confirm the real vendor contract, currency, precision and lending limits; use managed credentials and HTTPS.
+- Agree on idempotency, quote history, audit and retention requirements.
+- Configure rate limits, runtime deadlines, monitoring and restricted operational logs.
 
 ## AI usage
 
-AI assistance has been used to update project metadata, development tooling, worktree setup,
-GitHub configuration, contribution templates and documentation. Changes are
-reviewed and verified with the available project checks.
+AI assisted planning, implementation, tests, documentation and project tooling.
+Changes were reviewed and verified with automated checks and browser testing.
