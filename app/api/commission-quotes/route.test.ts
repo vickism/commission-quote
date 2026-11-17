@@ -1,13 +1,46 @@
 /** @jest-environment node */
+import { logger } from '../../../lib/logger.server';
 import { POST } from './route';
 
 jest.mock('server-only', () => ({}), { virtual: true });
+jest.mock('../../../lib/logger.server', () => {
+  const actual = jest.requireActual<typeof import('../../../lib/logger.server')>(
+    '../../../lib/logger.server'
+  );
+  return {
+    ...actual,
+    logger: actual.createLogger({
+      write(line: string) {
+        mockLogLines.push(line);
+      },
+    }),
+  };
+});
 
+const mockLogLines: string[] = [];
 const input = { loanAmount: 100000, loanTermInMonths: 36, riskBand: 'LOW' };
 const quote = { quoteId: 'quote-1', commissionRate: 0.0065, totalCommission: 650 };
 const realFetch = global.fetch;
 const fetchMock = jest.fn();
-let warn: jest.SpyInstance;
+
+function expectFailureLog(response: Response, category: string, upstreamStatus?: number) {
+  expect(mockLogLines).toHaveLength(1);
+  const entry = JSON.parse(mockLogLines[0]);
+  expect(entry).toEqual({
+    name: 'commission-quote',
+    level: category === 'configuration' || category === 'unexpected' ? 50 : 40,
+    time: expect.any(Number),
+    pid: expect.any(Number),
+    hostname: expect.any(String),
+    msg: 'commission_quote_failed',
+    requestId: response.headers.get('x-request-id'),
+    category,
+    elapsedMs: expect.any(Number),
+    ...(upstreamStatus !== undefined && { upstreamStatus }),
+  });
+  expect(entry.elapsedMs).toBeGreaterThanOrEqual(0);
+  expect(mockLogLines[0]).not.toContain('synthetic-test-key');
+}
 
 function request(body: unknown = input) {
   return new Request('http://localhost/api/commission-quotes', {
@@ -18,18 +51,22 @@ function request(body: unknown = input) {
 }
 
 beforeEach(() => {
-  process.env.COMMISSION_VENDOR_URL = 'http://vendor.test/commission-quotes';
-  process.env.COMMISSION_VENDOR_API_KEY = 'synthetic-test-key';
+  jest.replaceProperty(process, 'env', {
+    ...process.env,
+    COMMISSION_VENDOR_URL: 'http://vendor.test/commission-quotes',
+    COMMISSION_VENDOR_API_KEY: 'synthetic-test-key',
+    LOG_LEVEL: 'info',
+  });
+  logger.level = 'info';
+  mockLogLines.length = 0;
   global.fetch = fetchMock;
   fetchMock.mockReset().mockResolvedValue(Response.json(quote));
-  warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  warn.mockRestore();
+  global.fetch = realFetch;
+  jest.restoreAllMocks();
   jest.useRealTimers();
-  delete process.env.COMMISSION_VENDOR_URL;
-  delete process.env.COMMISSION_VENDOR_API_KEY;
 });
 
 it('validates input, authenticates exactly once and returns a minimal quote', async () => {
@@ -48,6 +85,27 @@ it('validates input, authenticates exactly once and returns a minimal quote', as
   expect(options.method).toBe('POST');
   expect(options.redirect).toBe('error');
   expect(JSON.parse(options.body)).toEqual(input);
+  expect(mockLogLines).toHaveLength(1);
+  const entry = JSON.parse(mockLogLines[0]);
+  expect(entry).toEqual({
+    name: 'commission-quote',
+    level: 30,
+    time: expect.any(Number),
+    pid: expect.any(Number),
+    hostname: expect.any(String),
+    msg: 'commission_quote_generated',
+    requestId: response.headers.get('x-request-id'),
+    elapsedMs: expect.any(Number),
+  });
+  expect(entry.elapsedMs).toBeGreaterThanOrEqual(0);
+});
+
+it('suppresses success logs when the configured level is warn', async () => {
+  logger.level = 'warn';
+  const response = await POST(request());
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual(quote);
+  expect(mockLogLines).toEqual([]);
 });
 
 it.each([{}, null, [], { ...input, loanAmount: '100000' }, { ...input, loanTermInMonths: 1.5 }])(
@@ -57,6 +115,7 @@ it.each([{}, null, [], { ...input, loanAmount: '100000' }, { ...input, loanTermI
     expect(response.status).toBe(400);
     expect((await response.json()).error.code).toBe('INVALID_REQUEST');
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(mockLogLines).toEqual([]);
   }
 );
 
@@ -70,6 +129,7 @@ it('rejects invalid JSON safely', async () => {
   );
   expect(response.status).toBe(400);
   expect(fetchMock).not.toHaveBeenCalled();
+  expect(mockLogLines).toEqual([]);
 });
 
 it('rejects unsupported content types', async () => {
@@ -81,6 +141,7 @@ it('rejects unsupported content types', async () => {
   );
   expect(response.status).toBe(415);
   expect(fetchMock).not.toHaveBeenCalled();
+  expect(mockLogLines).toEqual([]);
 });
 
 it.each([undefined, '1'])(
@@ -99,6 +160,7 @@ it.each([undefined, '1'])(
     );
     expect(response.status).toBe(413);
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(mockLogLines).toEqual([]);
   }
 );
 
@@ -113,6 +175,7 @@ it.each([
   expect(response.status).toBe(500);
   expect((await response.json()).error.code).toBe('INTERNAL_ERROR');
   expect(fetchMock).not.toHaveBeenCalled();
+  expectFailureLog(response, 'configuration');
 });
 
 it.each([
@@ -132,9 +195,11 @@ it.each([
     expect(response.status).toBe(expectedStatus);
     expect(await response.text()).not.toContain('synthetic-test-key');
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(JSON.stringify(warn.mock.calls)).not.toContain('synthetic-test-key');
-    expect(JSON.stringify(warn.mock.calls)).not.toContain('100000');
-    expect(warn.mock.calls[0][1].requestId).toBe(response.headers.get('x-request-id'));
+    expectFailureLog(
+      response,
+      upstreamStatus === 503 ? 'unavailable' : 'request-failed',
+      upstreamStatus
+    );
   }
 );
 
@@ -148,6 +213,7 @@ it.each([
   const response = await POST(request());
   expect(response.status).toBe(502);
   expect((await response.json()).error.code).toBe('VENDOR_ERROR');
+  expectFailureLog(response, 'invalid-response', 200);
 });
 
 it('handles a failed network request without exposing exception text', async () => {
@@ -155,8 +221,63 @@ it('handles a failed network request without exposing exception text', async () 
   const response = await POST(request());
   expect(response.status).toBe(502);
   expect(await response.text()).not.toContain('synthetic-test-key');
-  expect(JSON.stringify(warn.mock.calls)).not.toContain('synthetic-test-key');
   expect(fetchMock).toHaveBeenCalledTimes(1);
+  expectFailureLog(response, 'request-failed');
+});
+
+it('logs unexpected failures without exposing raw exception text', async () => {
+  const incoming = request();
+  Object.defineProperty(incoming, 'headers', {
+    get() {
+      throw new Error('synthetic-test-key private exception text');
+    },
+  });
+  const response = await POST(incoming);
+  expect(response.status).toBe(500);
+  expect((await response.json()).error.code).toBe('INTERNAL_ERROR');
+  expect(fetchMock).not.toHaveBeenCalled();
+  expectFailureLog(response, 'unexpected');
+  expect(mockLogLines[0]).not.toContain('private exception text');
+});
+
+it('correlates overlapping failures when the upstream responses finish in reverse order', async () => {
+  const finish: Array<(response: Response) => void> = [];
+  let markStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    markStarted = resolve;
+  });
+  fetchMock.mockImplementation(
+    () =>
+      new Promise<Response>((resolve) => {
+        finish.push(resolve);
+        if (finish.length === 2) {
+          markStarted();
+        }
+      })
+  );
+  const firstPending = POST(request());
+  const secondPending = POST(request());
+  await started;
+  finish[1](new Response('synthetic-test-key', { status: 503 }));
+  const second = await secondPending;
+  finish[0](new Response('synthetic-test-key', { status: 401 }));
+  const first = await firstPending;
+  expect(first.status).toBe(502);
+  expect(second.status).toBe(503);
+  expect(first.headers.get('x-request-id')).not.toBe(second.headers.get('x-request-id'));
+  expect(mockLogLines.map((line) => JSON.parse(line))).toEqual([
+    expect.objectContaining({
+      requestId: second.headers.get('x-request-id'),
+      category: 'unavailable',
+      upstreamStatus: 503,
+    }),
+    expect.objectContaining({
+      requestId: first.headers.get('x-request-id'),
+      category: 'request-failed',
+      upstreamStatus: 401,
+    }),
+  ]);
+  expect(mockLogLines.join('')).not.toContain('synthetic-test-key');
 });
 
 describe.each(['UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT'])(
@@ -182,9 +303,9 @@ describe.each(['UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BO
       expect(body.error.code).toBe('VENDOR_TIMEOUT');
       expect(body.error.message).toContain('timed out');
       expect(JSON.stringify(body)).not.toContain('synthetic-test-key');
-      expect(JSON.stringify(warn.mock.calls)).not.toContain('synthetic-test-key');
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true);
+      expectFailureLog(response, 'timeout', stage === 'body' ? 200 : undefined);
     });
   }
 );
@@ -196,6 +317,7 @@ it.each(['ECONNREFUSED', 'UND_ERR_SOCKET'])(
     const response = await POST(request());
     expect(response.status).toBe(502);
     expect((await response.json()).error.code).toBe('VENDOR_ERROR');
+    expectFailureLog(response, 'request-failed');
   }
 );
 
@@ -217,8 +339,17 @@ it('waits for fetch to settle instead of imposing an application deadline', asyn
   expect(settled).toBe(false);
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false);
+  expect(mockLogLines).toEqual([]);
   finish(Response.json(quote));
-  expect((await pending).status).toBe(200);
+  const response = await pending;
+  expect(response.status).toBe(200);
+  expect(mockLogLines).toHaveLength(1);
+  expect(JSON.parse(mockLogLines[0])).toMatchObject({
+    msg: 'commission_quote_generated',
+    level: 30,
+    requestId: response.headers.get('x-request-id'),
+    elapsedMs: 30000,
+  });
 });
 
 it('releases a streaming vendor error connection without changing its status', async () => {
@@ -243,6 +374,7 @@ it('releases a streaming vendor error connection without changing its status', a
   try {
     const response = await POST(request());
     expect(response.status).toBe(503);
+    expectFailureLog(response, 'unavailable', 503);
     await new Promise((resolve) => {
       setTimeout(resolve, 250);
     });
@@ -261,6 +393,7 @@ it('rejects remote plain HTTP when running in production', async () => {
     const response = await POST(request());
     expect(response.status).toBe(500);
     expect(fetchMock).not.toHaveBeenCalled();
+    expectFailureLog(response, 'configuration');
   } finally {
     environment.restore();
   }
