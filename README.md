@@ -110,3 +110,4 @@ Runs send app context and screenshots to model providers and incur API usage; us
 
 AI assisted planning, implementation, tests, documentation and project tooling.
 Changes were reviewed and verified with automated checks and browser testing.
+Vendor Skills were used to generate code, review plans and provide guidance. [Next.js](https://nextjs.org/docs/app/guides/ai-agents), [Mantine](https://mantine.dev/guides/llms/#skills)
