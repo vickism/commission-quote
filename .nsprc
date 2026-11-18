@@ -8,5 +8,10 @@
     "active": true,
     "notes": "No patched elliptic release is available. Transitive dependency of Storybook's node-polyfill-webpack-plugin; the application does not use this dependency for cryptographic operations. Review Storybook updates or removal of the polyfill before expiry.",
     "expiry": "2026-12-16"
+  },
+  "1247710": {
+    "active": true,
+    "notes": "No patched picmatch release is available. Dev only dependency.",
+    "expiry": "2026-12-16"
   }
 }
