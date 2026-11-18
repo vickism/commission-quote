@@ -1,7 +1,32 @@
 # Commission Quote
+Generate commission quotes from loan details.
 
-Generate commission quotes from loan details using Next.js, TypeScript and Mantine.
-An independent Mockoon API calculates the commission.
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph app["Commission Quote app · localhost:3000"]
+        browser["Browser<br/>React + Mantine form"]
+        server["Next.js server<br/>Input and response validation<br/>Server-only API key"]
+        browser -->|"POST /api/commission-quotes"| server
+        server -->|"Quote or safe error"| browser
+    end
+    vendor["Independent Mockoon vendor · :4001<br/>Commission calculation<br/>Simulated failures"]
+    server -->|"POST /commission-quotes<br/>api-key header"| vendor
+    vendor -->|"Quote or vendor error"| server
+```
+
+Architecture decisions:
+
+- [ADR-001: React application starter](docs/architecture-decisions/ADR-001-React%20Application%20Starter%20Selection.md)
+- [ADR-002: Mock vendor API](docs/architecture-decisions/ADR-002-Mock%20Vendor%20API%20Selection.md)
+
+## Tech stack
+
+- **Application:** Next.js App Router, React and TypeScript.
+- **UI and validation:** Mantine components and forms, Zod schemas.
+- **Mock vendor:** Mockoon CLI, running independently of the app.
+- **Testing:** Jest, React Testing Library and AI-assisted Playwright browser tests.
 
 ## Run locally
 
@@ -15,8 +40,6 @@ Use Node.js 26.13.1.
    then open http://localhost:3000. Press Ctrl+C to stop both.
 
 To run them separately, use `npm run dev:app` and `npm run mock:vendor`.
-
-The vendor key is read only on the server and must never use the `NEXT_PUBLIC_` prefix.
 
 To run the production build locally, run `npm run build`, then `npm start`.
 Keep the vendor running in its own terminal.
@@ -32,13 +55,8 @@ npm run build
 npm run audit
 ```
 
-`npm test` checks formatting, lint, types and automated tests. Tests simulate vendor
-responses and timeouts, so the mock does not need to be running. These checks also run
-in [CI](.github/workflows/ci.yml); reviewed audit exceptions are in [.nsprc](.nsprc).
+`npm test` checks formatting, lint, types and automated tests.
 
-For a manual check, generate a quote for each risk band, submit invalid input, and
-check that editing clears the previous result. Stop/restart your local vendor to
-verify failure and recovery.
 
 ## AI browser test
 
@@ -77,12 +95,9 @@ Runs send app context and screenshots to model providers and incur API usage; us
 ## Behavior and limitations
 
 - The mock intentionally returns occasional 503 errors randomly. Its calculation rules are
-  illustrative and currently do not use the loan term.
-- There are no automatic retries; a timed-out request may already have generated a quote.
+  illustrative.
+- There are no automatic retries.
 - Quotes are not stored.
-
-The browser calls a Next.js POST endpoint, which validates input and calls a server-only
-vendor adapter.
 
 ## Before production
 

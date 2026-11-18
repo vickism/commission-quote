@@ -9,7 +9,7 @@ export const metadata = {
   description: 'Commission quote application built with Next.js, TypeScript and Mantine.',
 };
 
-export default function RootLayout({ children }: { children: any }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
